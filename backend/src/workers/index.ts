@@ -1,0 +1,1 @@
+export { startPaperGenerationWorker } from "./paperGenerationWorker";

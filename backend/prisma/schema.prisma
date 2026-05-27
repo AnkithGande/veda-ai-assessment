@@ -1,0 +1,70 @@
+// Prisma Schema — Veda AI Assessment
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum AssignmentStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Assignment {
+  id            String           @id @default(cuid())
+  title         String
+  dueDate       DateTime
+  instructions  String
+  sourceFileUrl String?
+  status        AssignmentStatus @default(PENDING)
+  totalQuestions Int
+  totalMarks    Int
+
+  /// Question configuration array.
+  /// Shape: [{ "type": "MCQ", "count": 5, "marks": 2 }, ...]
+  questionConfig Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  generatedPaper GeneratedPaper?
+
+  @@map("assignments")
+}
+
+model GeneratedPaper {
+  id           String @id @default(cuid())
+  assignmentId String @unique
+
+  /// Structured AI output stored as JSON.
+  /// Shape: { "sections": [...], "metadata": { ... } }
+  content Json
+
+  createdAt DateTime @default(now())
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@map("generated_papers")
+}
