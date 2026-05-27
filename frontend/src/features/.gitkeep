@@ -1,0 +1,2 @@
+# Feature modules will be added here once backend schema is finalized.
+# Each feature follows the pattern: features/<name>/{components,hooks,store,types}
