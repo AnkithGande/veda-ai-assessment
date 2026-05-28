@@ -3,19 +3,14 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
-  Printer,
-  Download,
-  Clock,
-  BookOpen,
-  CheckCircle2,
-  AlertCircle,
+  ArrowLeft, Printer, Download, Clock, BookOpen,
+  CheckCircle2, AlertCircle, Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateTime } from "@/lib/assignment-utils";
 import type { Assignment, GeneratedPaper } from "@/services/assignments";
 
-// ─── Paper content types (mirrors backend paper-generator.ts) ─────────────────
+// ─── Content types ────────────────────────────────────────────────────────────
 
 interface GeneratedQuestion {
   id: string;
@@ -43,13 +38,13 @@ interface GeneratedPaperContent {
   metadata: { generatorVersion: string; mode: string };
 }
 
-// ─── Difficulty badge ─────────────────────────────────────────────────────────
+// ─── Type badge ───────────────────────────────────────────────────────────────
 
 const TYPE_BADGE: Record<string, { label: string; className: string }> = {
-  MCQ: { label: "MCQ", className: "bg-blue-50 text-blue-700 ring-blue-200" },
+  MCQ:          { label: "MCQ",          className: "bg-blue-50 text-blue-700 ring-blue-200" },
   SHORT_ANSWER: { label: "Short Answer", className: "bg-amber-50 text-amber-700 ring-amber-200" },
-  LONG_ANSWER: { label: "Long Answer", className: "bg-purple-50 text-purple-700 ring-purple-200" },
-  TRUE_FALSE: { label: "True / False", className: "bg-teal-50 text-teal-700 ring-teal-200" },
+  LONG_ANSWER:  { label: "Long Answer",  className: "bg-purple-50 text-purple-700 ring-purple-200" },
+  TRUE_FALSE:   { label: "True / False", className: "bg-teal-50 text-teal-700 ring-teal-200" },
 };
 
 function TypeBadge({ type }: { type: string }) {
@@ -61,33 +56,25 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
-// ─── MCQ / True-False option row ──────────────────────────────────────────────
+// ─── Option row ───────────────────────────────────────────────────────────────
 
 function OptionRow({ label, text, isAnswer }: { label: string; text: string; isAnswer: boolean }) {
   return (
     <div className={cn(
-      "option-row flex items-start gap-3 rounded-lg border px-4 py-2.5 text-sm transition-colors",
-      isAnswer
-        ? "border-emerald-200 bg-emerald-50/60"
-        : "border-gray-200 bg-white"
+      "option-row flex items-start gap-3 rounded-lg border px-4 py-2.5 text-sm",
+      isAnswer ? "border-emerald-200 bg-emerald-50/60" : "border-gray-200 bg-white"
     )}>
       <span className={cn(
         "mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold",
-        isAnswer
-          ? "border-emerald-400 bg-emerald-100 text-emerald-700"
-          : "border-gray-300 bg-gray-50 text-gray-500"
-      )}>
-        {label}
-      </span>
-      <span className={cn("flex-1 leading-relaxed", isAnswer ? "font-medium text-emerald-900" : "text-gray-700")}>
-        {text}
-      </span>
+        isAnswer ? "border-emerald-400 bg-emerald-100 text-emerald-700" : "border-gray-300 bg-gray-50 text-gray-500"
+      )}>{label}</span>
+      <span className={cn("flex-1 leading-relaxed", isAnswer ? "font-medium text-emerald-900" : "text-gray-700")}>{text}</span>
       {isAnswer && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />}
     </div>
   );
 }
 
-// ─── Answer lines (for short / long answer) ───────────────────────────────────
+// ─── Answer lines ─────────────────────────────────────────────────────────────
 
 function AnswerLines({ count }: { count: number }) {
   return (
@@ -99,70 +86,37 @@ function AnswerLines({ count }: { count: number }) {
   );
 }
 
-// ─── Single question ──────────────────────────────────────────────────────────
+// ─── Question item ────────────────────────────────────────────────────────────
 
-function QuestionItem({
-  question,
-  showAnswers,
-}: {
-  question: GeneratedQuestion;
-  showAnswers: boolean;
-}) {
+function QuestionItem({ question, showAnswers }: { question: GeneratedQuestion; showAnswers: boolean }) {
   const isLong = question.type === "LONG_ANSWER";
-
   return (
-    <div className="group relative">
-      {/* Question row */}
-      <div className="flex items-start gap-4">
-        {/* Number */}
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">
-          {question.number}
+    <div className="flex items-start gap-4">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white">
+        {question.number}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="mb-2 flex items-center gap-2">
+          <TypeBadge type={question.type} />
+          <span className="ml-auto rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+            [{question.marks} {question.marks === 1 ? "mark" : "marks"}]
+          </span>
         </div>
-
-        {/* Body */}
-        <div className="flex-1 min-w-0">
-          {/* Type badge + marks */}
-          <div className="mb-2 flex items-center gap-2">
-            <TypeBadge type={question.type} />
-            <span className="ml-auto rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-gray-600">
-              [{question.marks} {question.marks === 1 ? "mark" : "marks"}]
-            </span>
+        <p className="text-[14.5px] leading-relaxed text-gray-900">{question.text}</p>
+        {question.options && (
+          <div className={cn("option-grid mt-3 grid gap-2", question.options.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-2")}>
+            {question.options.map((opt, i) => (
+              <OptionRow key={i} label={String.fromCharCode(65 + i)} text={opt} isAnswer={showAnswers && opt === question.answer} />
+            ))}
           </div>
-
-          {/* Question text */}
-          <p className="text-[14.5px] leading-relaxed text-gray-900">
-            {question.text}
-          </p>
-
-          {/* MCQ / True-False options */}
-          {question.options && (
-            <div className={cn("option-grid mt-3 grid gap-2", question.options.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-2")}>
-              {question.options.map((opt, i) => (
-                <OptionRow
-                  key={i}
-                  label={String.fromCharCode(65 + i)}
-                  text={opt}
-                  isAnswer={showAnswers && opt === question.answer}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Answer space for written questions */}
-          {!question.options && (
-            <AnswerLines count={isLong ? 8 : 4} />
-          )}
-
-          {/* Model answer (screen only, hidden in print) */}
-          {showAnswers && question.answer && !question.options && (
-            <div className="model-answer mt-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-blue-500">
-                Model Answer
-              </p>
-              <p className="text-sm leading-relaxed text-blue-900">{question.answer}</p>
-            </div>
-          )}
-        </div>
+        )}
+        {!question.options && <AnswerLines count={isLong ? 8 : 4} />}
+        {showAnswers && question.answer && !question.options && (
+          <div className="model-answer mt-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-blue-500">Model Answer</p>
+            <p className="text-sm leading-relaxed text-blue-900">{question.answer}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -172,25 +126,13 @@ function QuestionItem({
 
 const SECTION_LETTERS = ["A", "B", "C", "D", "E", "F"];
 
-function PaperSection({
-  section,
-  index,
-  showAnswers,
-}: {
-  section: GeneratedSection;
-  index: number;
-  showAnswers: boolean;
-}) {
+function PaperSection({ section, index, showAnswers }: { section: GeneratedSection; index: number; showAnswers: boolean }) {
   const letter = SECTION_LETTERS[index] ?? String(index + 1);
-
   return (
     <div className={cn("section-break", index > 0 && "mt-10")}>
-      {/* Section header bar */}
       <div className="mb-6 flex items-center justify-between rounded-xl bg-gray-900 px-5 py-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-sm font-bold text-white">
-            {letter}
-          </span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-sm font-bold text-white">{letter}</span>
           <h3 className="text-sm font-semibold text-white">{section.title}</h3>
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-300">
@@ -199,8 +141,6 @@ function PaperSection({
           <span className="font-semibold text-white">{section.totalMarks} marks</span>
         </div>
       </div>
-
-      {/* Questions */}
       <div className="space-y-7 px-1">
         {section.questions.map((q) => (
           <QuestionItem key={q.id} question={q} showAnswers={showAnswers} />
@@ -210,7 +150,7 @@ function PaperSection({
   );
 }
 
-// ─── Student info fields ──────────────────────────────────────────────────────
+// ─── Student info ─────────────────────────────────────────────────────────────
 
 function StudentInfoFields() {
   const fields = ["Student Name", "Class / Grade", "Roll Number", "Date"];
@@ -218,9 +158,7 @@ function StudentInfoFields() {
     <div className="grid grid-cols-2 gap-x-8 gap-y-4">
       {fields.map((label) => (
         <div key={label} className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            {label}
-          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{label}</span>
           <div className="h-8 w-full border-b-2 border-gray-300" />
         </div>
       ))}
@@ -228,61 +166,169 @@ function StudentInfoFields() {
   );
 }
 
-// ─── Exam paper (the printable white sheet) ───────────────────────────────────
+// ─── Answer Key ───────────────────────────────────────────────────────────────
+
+interface AnswerKeyEntry {
+  number: number;
+  type: string;
+  answer: string;
+  marks: number;
+}
+
+function buildAnswerKey(sections: GeneratedSection[]): AnswerKeyEntry[] {
+  const entries: AnswerKeyEntry[] = [];
+  for (const section of sections) {
+    for (const q of section.questions) {
+      if (q.answer) {
+        entries.push({ number: q.number, type: q.type, answer: q.answer, marks: q.marks });
+      }
+    }
+  }
+  return entries.sort((a, b) => a.number - b.number);
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  MCQ: "MCQ", SHORT_ANSWER: "Short Answer",
+  LONG_ANSWER: "Long Answer", TRUE_FALSE: "True / False",
+};
+
+const ANSWER_ACCENT: Record<string, string> = {
+  MCQ:          "border-l-blue-400 bg-blue-50/40",
+  SHORT_ANSWER: "border-l-amber-400 bg-amber-50/40",
+  LONG_ANSWER:  "border-l-purple-400 bg-purple-50/40",
+  TRUE_FALSE:   "border-l-teal-400 bg-teal-50/40",
+};
+
+const ANSWER_NUM: Record<string, string> = {
+  MCQ:          "bg-blue-100 text-blue-700",
+  SHORT_ANSWER: "bg-amber-100 text-amber-700",
+  LONG_ANSWER:  "bg-purple-100 text-purple-700",
+  TRUE_FALSE:   "bg-teal-100 text-teal-700",
+};
+
+function AnswerKey({ sections }: { sections: GeneratedSection[] }) {
+  const entries = buildAnswerKey(sections);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="answer-key mt-10">
+      {/* ── End of paper divider ── */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex-1 border-t-2 border-dashed border-gray-300" />
+        <span className="shrink-0 rounded-full border border-gray-300 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          End of Question Paper
+        </span>
+        <div className="flex-1 border-t-2 border-dashed border-gray-300" />
+      </div>
+
+      {/* ── Answer Key container ── */}
+      <div className="rounded-2xl border-2 border-gray-200 bg-gray-50 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b-2 border-gray-200 bg-white px-6 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900">
+            <Key className="h-4.5 w-4.5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Answer Key</h2>
+            <p className="text-xs text-gray-500">
+              {entries.length} answer{entries.length !== 1 ? "s" : ""} · For teacher use only
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide">Teacher Copy</span>
+          </div>
+        </div>
+
+        {/* Answers list */}
+        <div className="divide-y divide-gray-200 px-6 py-2">
+          {entries.map((entry) => (
+            <div
+              key={entry.number}
+              className={cn(
+                "flex items-start gap-4 border-l-4 my-2 rounded-r-xl px-4 py-3",
+                ANSWER_ACCENT[entry.type] ?? "border-l-gray-300 bg-white"
+              )}
+            >
+              {/* Question number */}
+              <div className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                ANSWER_NUM[entry.type] ?? "bg-gray-100 text-gray-600"
+              )}>
+                {entry.number}
+              </div>
+
+              {/* Answer content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                    {TYPE_LABEL[entry.type] ?? entry.type}
+                  </span>
+                  <span className="text-[10px] text-gray-300">·</span>
+                  <span className="text-[10px] font-medium text-gray-400">
+                    {entry.marks} {entry.marks === 1 ? "mark" : "marks"}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed text-gray-800">{entry.answer}</p>
+              </div>
+
+              {/* Correct indicator */}
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 bg-white px-6 py-3">
+          <p className="text-center text-[11px] text-gray-400">
+            This answer key is generated by VedaAI and is intended for teacher use only.
+            Answers may vary for open-ended questions.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Exam paper ───────────────────────────────────────────────────────────────
 
 function ExamPaper({
-  content,
-  assignment,
-  showAnswers,
+  content, assignment, showAnswers,
 }: {
   content: GeneratedPaperContent;
   assignment: Assignment;
   showAnswers: boolean;
 }) {
   return (
-    <div className="exam-paper relative rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-200/60 px-10 py-10 md:px-14 md:py-12">
-
-      {/* Watermark for mock mode */}
+    <div className="exam-paper relative rounded-2xl border border-gray-200 bg-white shadow-lg shadow-gray-200/60 px-6 py-8 md:px-14 md:py-12">
+      {/* Draft watermark */}
       {content.metadata.mode === "mock" && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl">
-          <span className="rotate-[-35deg] text-[80px] font-black uppercase tracking-widest text-gray-100 select-none">
-            DRAFT
-          </span>
+          <span className="rotate-[-35deg] text-[80px] font-black uppercase tracking-widest text-gray-100 select-none">DRAFT</span>
         </div>
       )}
 
-      {/* ── Paper header ── */}
+      {/* Header */}
       <div className="relative border-b-2 border-gray-900 pb-6">
-        {/* Institution row */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900">
               <BookOpen className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                VedaAI Assessment
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">VedaAI Assessment</p>
               <p className="text-sm font-bold text-gray-900">Greenwood High School</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-400">Academic Year 2025–26</p>
-            <p className="text-xs text-gray-400">
-              Due: {formatDate(assignment.dueDate)}
-            </p>
+            <p className="text-xs text-gray-400">Due: {formatDate(assignment.dueDate)}</p>
           </div>
         </div>
-
-        {/* Title */}
         <div className="mt-6 text-center">
-          <h1 className="text-2xl font-extrabold uppercase tracking-tight text-gray-900">
-            {content.title}
-          </h1>
+          <h1 className="text-2xl font-extrabold uppercase tracking-tight text-gray-900">{content.title}</h1>
           <p className="mt-1 text-sm text-gray-500">Assessment Paper</p>
         </div>
-
-        {/* Stats strip */}
         <div className="mt-5 flex items-center justify-center gap-8 rounded-xl bg-gray-50 py-3">
           {[
             { label: "Total Marks", value: content.totalMarks },
@@ -300,14 +346,12 @@ function ExamPaper({
         </div>
       </div>
 
-      {/* ── Instructions ── */}
+      {/* Instructions */}
       <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-1.5">
-              General Instructions
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-1.5">General Instructions</p>
             <ul className="space-y-1 text-xs text-amber-900">
               <li>• Read all questions carefully before answering.</li>
               <li>• Write your answers clearly in the spaces provided.</li>
@@ -318,28 +362,24 @@ function ExamPaper({
         </div>
       </div>
 
-      {/* ── Student info ── */}
+      {/* Student info */}
       <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Student Information
-        </p>
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Student Information</p>
         <StudentInfoFields />
       </div>
 
-      {/* ── Sections ── */}
+      {/* Sections */}
       <div className="mt-8">
         {content.sections.map((section, i) => (
-          <PaperSection
-            key={i}
-            section={section}
-            index={i}
-            showAnswers={showAnswers}
-          />
+          <PaperSection key={i} section={section} index={i} showAnswers={showAnswers} />
         ))}
       </div>
 
-      {/* ── Footer ── */}
-      <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-4 text-[11px] text-gray-400">
+      {/* ── Answer Key — always rendered, always in print ── */}
+      <AnswerKey sections={content.sections} />
+
+      {/* Footer */}
+      <div className="mt-10 flex items-center justify-between border-t border-gray-200 pt-4 text-[11px] text-gray-400">
         <span>Generated by VedaAI · {formatDateTime(content.generatedAt)}</span>
         <span>v{content.metadata.generatorVersion}</span>
       </div>
@@ -350,10 +390,7 @@ function ExamPaper({
 // ─── Toolbar ─────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  assignment,
-  paper,
-  showAnswers,
-  onToggleAnswers,
+  assignment, paper, showAnswers, onToggleAnswers,
 }: {
   assignment: Assignment;
   paper: GeneratedPaper;
@@ -361,71 +398,30 @@ function Toolbar({
   onToggleAnswers: () => void;
 }) {
   const router = useRouter();
-
-  function handlePrint() {
-    window.print();
-  }
-
-  function handleDownload() {
-    // Trigger browser print-to-PDF dialog
-    window.print();
-  }
-
   return (
     <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-3">
-      {/* Left */}
-      <button
-        type="button"
-        onClick={() => router.push(`/assignments/${assignment.id}`)}
-        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Assignment
+      <button type="button" onClick={() => router.push(`/assignments/${assignment.id}`)}
+        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <ArrowLeft className="h-4 w-4" />Back to Assignment
       </button>
-
-      {/* Right */}
       <div className="flex items-center gap-2">
-        {/* Generated timestamp */}
         <span className="hidden items-center gap-1.5 text-xs text-gray-400 sm:flex">
-          <Clock className="h-3.5 w-3.5" />
-          Generated {formatDateTime(paper.createdAt)}
+          <Clock className="h-3.5 w-3.5" />Generated {formatDateTime(paper.createdAt)}
         </span>
-
         <div className="h-4 w-px bg-gray-200 hidden sm:block" />
-
-        {/* Toggle answers */}
-        <button
-          type="button"
-          onClick={onToggleAnswers}
-          className={cn(
-            "flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-colors",
-            showAnswers
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-              : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-          )}
-        >
+        <button type="button" onClick={onToggleAnswers}
+          className={cn("flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-colors",
+            showAnswers ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50")}>
           <CheckCircle2 className="h-4 w-4" />
-          {showAnswers ? "Hide Answers" : "Show Answers"}
+          {showAnswers ? "Hide Inline Answers" : "Show Inline Answers"}
         </button>
-
-        {/* Print */}
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          <Printer className="h-4 w-4" />
-          Print
+        <button type="button" onClick={() => window.print()}
+          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <Printer className="h-4 w-4" />Print
         </button>
-
-        {/* Download PDF */}
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-        >
-          <Download className="h-4 w-4" />
-          Download PDF
+        <button type="button" onClick={() => window.print()}
+          className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+          <Download className="h-4 w-4" />Download PDF
         </button>
       </div>
     </div>
@@ -451,16 +447,9 @@ export function PaperViewer({ assignment, paper }: PaperViewerProps) {
         showAnswers={showAnswers}
         onToggleAnswers={() => setShowAnswers((v) => !v)}
       />
-
-      {/* Printable container — targeted by print CSS */}
       <div id="printable-paper">
-        <ExamPaper
-          content={content}
-          assignment={assignment}
-          showAnswers={showAnswers}
-        />
+        <ExamPaper content={content} assignment={assignment} showAnswers={showAnswers} />
       </div>
     </div>
   );
 }
-
