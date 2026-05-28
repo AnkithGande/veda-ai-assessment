@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path";
-import { AppError } from "@/middleware/errorHandler";
+import { AppError } from "../middleware/errorHandler";
 
 const ALLOWED_MIME_TYPES = [
   "application/pdf",

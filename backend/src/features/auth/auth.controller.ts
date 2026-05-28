@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import { sendSuccess } from "@/utils/response";
-import { asyncHandler } from "@/utils/asyncHandler";
-import { validate } from "@/middleware/validate";
+import { sendSuccess } from "../../utils/response";
+import { asyncHandler } from "../../utils/asyncHandler";
+import { validate } from "../../middleware/validate";
 import { register, loginUser, getCurrentUser, verifyToken } from "./auth.service";
 import { registerSchema, loginSchema } from "./auth.schema";
-import { AppError } from "@/middleware/errorHandler";
+import { AppError } from "../../middleware/errorHandler";
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 

@@ -1,9 +1,9 @@
-import { prisma } from "@/config/database";
-import { AppError } from "@/middleware/errorHandler";
-import { logger } from "@/utils/logger";
+import { prisma } from "../../config/database";
+import { AppError } from "../../middleware/errorHandler";
+import { logger } from "../../utils/logger";
 import type { CreateAssignmentInput, PaginationQuery } from "./assignments.schema";
 import type { Assignment, AssignmentWithPaper } from "./assignments.types";
-import type { PaginatedResponse } from "@/types";
+import type { PaginatedResponse } from "../../types";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -103,11 +103,11 @@ export async function enqueueGeneration(id: string): Promise<void> {
     }
   }
 
-  const { isRedisAvailable } = await import("@/config/redis");
+  const { isRedisAvailable } = await import("../../config/redis");
 
   if (isRedisAvailable()) {
     // ── BullMQ path ──────────────────────────────────────────────────────────
-    const { getPaperGenerationQueue } = await import("@/queues/paperGenerationQueue");
+    const { getPaperGenerationQueue } = await import("../../queues/paperGenerationQueue");
     const queue = getPaperGenerationQueue();
     // Use timestamp in jobId so re-generation after failure always creates a new job
     const jobId = `generate-${id}-${Date.now()}`;
@@ -126,8 +126,8 @@ export async function enqueueGeneration(id: string): Promise<void> {
 // ─── In-process generation (Redis-free fallback) ──────────────────────────────
 
 async function runInProcessGeneration(assignmentId: string): Promise<void> {
-  const { generateMockPaper } = await import("@/features/assignments/paper-generator");
-  const { emitGenerationProgress } = await import("@/sockets");
+  const { generateMockPaper } = await import("./paper-generator");
+  const { emitGenerationProgress } = await import("../../sockets");
 
   try {
     logger.info(`[InProcess] Marking GENERATING for ${assignmentId}`);
@@ -153,7 +153,7 @@ async function runInProcessGeneration(assignmentId: string): Promise<void> {
 
     const paperContent = generateMockPaper(
       assignment.title,
-      assignment.questionConfig as unknown as import("@/features/assignments/assignments.types").QuestionConfigItem[]
+      assignment.questionConfig as unknown as import("./assignments.types").QuestionConfigItem[]
     );
 
     const paper = await prisma.generatedPaper.upsert({
@@ -187,7 +187,7 @@ async function runInProcessGeneration(assignmentId: string): Promise<void> {
       .update({ where: { id: assignmentId }, data: { status: "FAILED" } })
       .catch(() => null);
 
-    const { emitGenerationProgress } = await import("@/sockets");
+    const { emitGenerationProgress } = await import("../../sockets");
     emitGenerationProgress(assignmentId, {
       assignmentId,
       status: "FAILED",

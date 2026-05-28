@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
-import { bullMQConnection } from "@/config/redis";
-import type { GeneratePaperJobData } from "@/types";
+import { bullMQConnection } from "../config/redis";
+import type { GeneratePaperJobData } from "../types";
 
 export const PAPER_GENERATION_QUEUE = "paper-generation";
 

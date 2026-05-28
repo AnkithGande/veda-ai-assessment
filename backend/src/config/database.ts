@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { env } from "./env";
-import { logger } from "@/utils/logger";
+import { logger } from "../utils/logger";
 
 // ─── Prisma Singleton ─────────────────────────────────────────────────────────
 

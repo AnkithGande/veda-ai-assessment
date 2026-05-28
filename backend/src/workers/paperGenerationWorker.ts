@@ -1,12 +1,12 @@
 import { Worker, type Job } from "bullmq";
-import { bullMQConnection } from "@/config/redis";
-import { prisma } from "@/config/database";
-import { emitGenerationProgress } from "@/sockets";
-import { generateMockPaper } from "@/features/assignments/paper-generator";
-import { PAPER_GENERATION_QUEUE } from "@/queues/paperGenerationQueue";
-import type { GeneratePaperJobData } from "@/types";
-import type { QuestionConfigItem } from "@/features/assignments/assignments.types";
-import { logger } from "@/utils/logger";
+import { bullMQConnection } from "../config/redis";
+import { prisma } from "../config/database";
+import { emitGenerationProgress } from "../sockets";
+import { generateMockPaper } from "../features/assignments/paper-generator";
+import { PAPER_GENERATION_QUEUE } from "../queues/paperGenerationQueue";
+import type { GeneratePaperJobData } from "../types";
+import type { QuestionConfigItem } from "../features/assignments/assignments.types";
+import { logger } from "../utils/logger";
 async function processGeneratePaper(
   job: Job<GeneratePaperJobData>
 ): Promise<void> {

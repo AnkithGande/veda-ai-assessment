@@ -1,14 +1,14 @@
 import type { Server as HttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { env } from "@/config/env";
+import { env } from "../config/env";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
   InterServerEvents,
   SocketData,
   GenerationProgressPayload,
-} from "@/types";
-import { logger } from "@/utils/logger";
+} from "../types";
+import { logger } from "../utils/logger";
 
 export type AppSocketServer = SocketIOServer<
   ClientToServerEvents,

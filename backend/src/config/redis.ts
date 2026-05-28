@@ -1,6 +1,6 @@
 import IORedis from "ioredis";
 import { env } from "./env";
-import { logger } from "@/utils/logger";
+import { logger } from "../utils/logger";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 

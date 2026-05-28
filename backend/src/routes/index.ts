@@ -1,6 +1,6 @@
 import { Router } from "express";
-import assignmentRoutes from "@/features/assignments/assignments.routes";
-import authRoutes from "@/features/auth/auth.routes";
+import assignmentRoutes from "../features/assignments/assignments.routes";
+import authRoutes from "../features/auth/auth.routes";
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendSuccess, sendPaginated } from "@/utils/response";
+import { sendSuccess, sendPaginated } from "../../utils/response";
 import {
   createAssignment,
   listAssignments,

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { validate } from "@/middleware/validate";
-import { asyncHandler } from "@/utils/asyncHandler";
-import { upload } from "@/config/multer";
+import { validate } from "../../middleware/validate";
+import { asyncHandler } from "../../utils/asyncHandler";
+import { upload } from "../../config/multer";
 import { paginationQuerySchema } from "./assignments.schema";
 import { create, list, getById, remove, generate } from "./assignments.controller";
 

@@ -1,11 +1,11 @@
 import "dotenv/config";
 import http from "http";
 import app from "./app";
-import { env } from "@/config/env";
-import { connectDatabase, disconnectDatabase } from "@/config/database";
-import { tryConnectRedis } from "@/config/redis";
-import { initSocketServer } from "@/sockets";
-import { logger } from "@/utils/logger";
+import { env } from "./config/env";
+import { connectDatabase, disconnectDatabase } from "./config/database";
+import { tryConnectRedis } from "./config/redis";
+import { initSocketServer } from "./sockets";
+import { logger } from "./utils/logger";
 
 const httpServer = http.createServer(app);
 
@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
 
     if (redisOk) {
       // Only start BullMQ worker when Redis is available
-      const { startPaperGenerationWorker } = await import("@/workers");
+      const { startPaperGenerationWorker } = await import("./workers");
       startPaperGenerationWorker();
       logger.info("✅ BullMQ worker started (Redis mode)");
     } else {

@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { prisma } from "@/config/database";
-import { AppError } from "@/middleware/errorHandler";
-import { env } from "@/config/env";
+import { prisma } from "../../config/database";
+import { AppError } from "../../middleware/errorHandler";
+import { env } from "../../config/env";
 import type { RegisterInput, LoginInput } from "./auth.schema";
 
 const SALT_ROUNDS = 10;
