@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Printer, Download, Clock, BookOpen,
-  CheckCircle2, AlertCircle, Key,
+  CheckCircle2, AlertCircle, Key, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, formatDateTime } from "@/lib/assignment-utils";
@@ -390,14 +390,124 @@ function ExamPaper({
 // ─── Toolbar ─────────────────────────────────────────────────────────────────
 
 function Toolbar({
-  assignment, paper, showAnswers, onToggleAnswers,
+  assignment, paper, showAnswers, onToggleAnswers, printableRef,
 }: {
   assignment: Assignment;
   paper: GeneratedPaper;
   showAnswers: boolean;
   onToggleAnswers: () => void;
+  printableRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const router = useRouter();
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  // ── Print: open a new window with the paper HTML + inline styles ──────────
+  function handlePrint() {
+    const el = printableRef.current;
+    if (!el) return;
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Assessment Paper</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: #111;
+      padding: 24px;
+    }
+    @page { margin: 15mm; }
+    .section-break { page-break-inside: avoid; }
+    .answer-key { page-break-before: always; }
+    img { max-width: 100%; }
+    /* Tailwind colour approximations for print */
+    .bg-gray-900 { background-color: #111827 !important; color: #fff !important; }
+    .text-white { color: #fff !important; }
+    .bg-emerald-50 { background-color: #ecfdf5 !important; }
+    .border-emerald-200 { border-color: #a7f3d0 !important; }
+    .text-emerald-700 { color: #047857 !important; }
+    .bg-amber-50 { background-color: #fffbeb !important; }
+    .border-amber-200 { border-color: #fde68a !important; }
+    .text-amber-700 { color: #b45309 !important; }
+    .bg-blue-50 { background-color: #eff6ff !important; }
+    .bg-gray-50 { background-color: #f9fafb !important; }
+    .rounded-xl { border-radius: 12px; }
+    .rounded-2xl { border-radius: 16px; }
+    .rounded-full { border-radius: 9999px; }
+    .border { border: 1px solid #e5e7eb; }
+    .border-2 { border: 2px solid #e5e7eb; }
+    .border-gray-200 { border-color: #e5e7eb !important; }
+    .border-dashed { border-style: dashed !important; }
+    .shadow-lg, .shadow-sm { box-shadow: none !important; }
+    /* Hide screen-only elements */
+    .print\\:hidden { display: none !important; }
+    .model-answer { display: block !important; }
+  </style>
+</head>
+<body>${el.innerHTML}</body>
+</html>`);
+
+    win.document.close();
+    setTimeout(() => {
+      win.focus();
+      win.print();
+      win.close();
+    }, 600);
+  }
+
+  // ── PDF: html2canvas → jsPDF with multi-page support ─────────────────────
+  async function handleDownloadPdf() {
+    const el = printableRef.current;
+    if (!el) return;
+
+    setPdfLoading(true);
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save("assessment-paper.pdf");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   return (
     <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-3">
       <button type="button" onClick={() => router.push(`/assignments/${assignment.id}`)}
@@ -415,13 +525,14 @@ function Toolbar({
           <CheckCircle2 className="h-4 w-4" />
           {showAnswers ? "Hide Inline Answers" : "Show Inline Answers"}
         </button>
-        <button type="button" onClick={() => window.print()}
+        <button type="button" onClick={handlePrint}
           className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
           <Printer className="h-4 w-4" />Print
         </button>
-        <button type="button" onClick={() => window.print()}
-          className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
-          <Download className="h-4 w-4" />Download PDF
+        <button type="button" onClick={handleDownloadPdf} disabled={pdfLoading}
+          className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60">
+          {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          {pdfLoading ? "Generating…" : "Download PDF"}
         </button>
       </div>
     </div>
@@ -438,6 +549,7 @@ interface PaperViewerProps {
 export function PaperViewer({ assignment, paper }: PaperViewerProps) {
   const content = paper.content as GeneratedPaperContent;
   const [showAnswers, setShowAnswers] = useState(false);
+  const printableRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="mx-auto max-w-4xl pb-16">
@@ -446,8 +558,10 @@ export function PaperViewer({ assignment, paper }: PaperViewerProps) {
         paper={paper}
         showAnswers={showAnswers}
         onToggleAnswers={() => setShowAnswers((v) => !v)}
+        printableRef={printableRef}
       />
-      <div id="printable-paper">
+      {/* Stable ref — no overflow:hidden, no fixed height, no display:none */}
+      <div ref={printableRef} id="printable-paper">
         <ExamPaper content={content} assignment={assignment} showAnswers={showAnswers} />
       </div>
     </div>

@@ -69,45 +69,18 @@
 /* ─── Print styles ─────────────────────────────────────────────────────────── */
 
 @media print {
-  /* Hide everything except the paper */
-  body > * {
-    display: none !important;
-  }
+  /* The new print flow opens a separate window — these rules are kept
+     only as a fallback for direct Ctrl+P from the paper page. */
 
-  /* The assignments layout shell */
+  /* Hide toolbar buttons */
   .print\:hidden {
     display: none !important;
-  }
-
-  /* Show only the printable paper container */
-  #printable-paper {
-    display: block !important;
-    position: fixed;
-    inset: 0;
-    overflow: visible;
-  }
-
-  /* Reset page chrome */
-  html,
-  body {
-    height: auto;
-    background: white;
   }
 
   /* Paper itself */
   .exam-paper {
     box-shadow: none !important;
     border: none !important;
-    margin: 0 !important;
-    padding: 32px 48px !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  /* Keep answer boxes visible but no colour */
-  .answer-box {
-    border: 1px solid #ccc !important;
-    background: white !important;
   }
 
   /* Page breaks */
@@ -115,13 +88,12 @@
     page-break-before: always;
   }
 
-  /* Hide model answers in print */
-  .model-answer {
-    display: none !important;
+  .answer-key {
+    page-break-before: always;
   }
 
-  /* Ensure options print cleanly */
-  .option-grid {
-    grid-template-columns: 1fr 1fr !important;
+  /* Hide model answers in direct print (they appear in the Answer Key) */
+  .model-answer {
+    display: none !important;
   }
 }
