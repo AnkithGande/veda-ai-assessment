@@ -5,33 +5,34 @@ export const APP_VERSION = "1.0.0";
 
 // ─── API Base URL ─────────────────────────────────────────────────────────────
 //
-// NEXT_PUBLIC_API_URL  — inlined at build time for client components
-// API_URL             — available at runtime for server components (no NEXT_PUBLIC_ prefix)
+// Resolution order:
+//   1. API_URL              — server-side runtime (set in Vercel dashboard)
+//   2. NEXT_PUBLIC_API_URL  — build-time + client bundle
+//   3. Hardcoded Render URL — absolute production safety net
 //
-// Both must be set in Vercel Dashboard → Settings → Environment Variables.
-// The NEXT_PUBLIC_ prefix makes the value available in the browser bundle.
-// The non-prefixed API_URL is used by server-side fetch calls (SSR/RSC).
-//
-// Fallback chain:
-//   1. API_URL (server-side runtime, set in Vercel)
-//   2. NEXT_PUBLIC_API_URL (build-time, also works server-side when set)
-//   3. Hardcoded Render URL (production safety net — never hits localhost)
+// The URL is normalised: trailing slash stripped, then /api appended if missing.
+// This ensures the URL is always correct even if the env var is set without /api.
 
-const RENDER_API = "https://veda-ai-assessment-2zm7.onrender.com/api";
-
-export const API_BASE_URL =
+const RAW_URL =
   process.env.API_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
-  RENDER_API;
+  "https://veda-ai-assessment-2zm7.onrender.com/api";
+
+// Strip trailing slash, then ensure it ends with /api
+function normaliseApiUrl(url: string): string {
+  const stripped = url.replace(/\/+$/, ""); // remove trailing slashes
+  if (stripped.endsWith("/api")) return stripped;
+  return `${stripped}/api`;
+}
+
+export const API_BASE_URL = normaliseApiUrl(RAW_URL);
 
 // ─── Socket URL ───────────────────────────────────────────────────────────────
-
-const RENDER_SOCKET = "https://veda-ai-assessment-2zm7.onrender.com";
 
 export const SOCKET_URL =
   process.env.SOCKET_URL ??
   process.env.NEXT_PUBLIC_SOCKET_URL ??
-  RENDER_SOCKET;
+  "https://veda-ai-assessment-2zm7.onrender.com";
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
