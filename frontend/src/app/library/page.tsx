@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BookOpen, Plus, Pencil, Trash2, X, Check, Search } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
+import { MobileShell } from "@/components/mobile/MobileShell";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -207,86 +208,101 @@ export default function LibraryPage() {
   );
 
   return (
-    <div className="flex h-full bg-gray-50">
-      <Sidebar />
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <Navbar title="My Library" subtitle="Notes and resources" />
-        <main className="flex-1 overflow-y-auto px-8 py-7">
-          <div className="mx-auto max-w-5xl">
-
-            {/* Header */}
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-gray-900">My Library</h2>
-                <p className="mt-1 text-sm text-gray-500">{notes.length} note{notes.length !== 1 ? "s" : ""} · saved locally</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setEditNote(undefined); setShowModal(true); }}
-                className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-              >
-                <Plus className="h-4 w-4" />
-                Add Note
-              </button>
-            </div>
-
-            {/* Search */}
-            {notes.length > 0 && (
-              <div className="relative mb-5 max-w-sm">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search notes…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
-                />
-              </div>
-            )}
-
-            {/* Grid */}
-            {notes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-                  <BookOpen className="h-5 w-5 text-gray-400" />
+    <>
+      {/* ── Desktop ── */}
+      <div className="hidden md:flex h-full bg-gray-50">
+        <Sidebar />
+        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+          <Navbar title="My Library" subtitle="Notes and resources" />
+          <main className="flex-1 overflow-y-auto px-8 py-7">
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight text-gray-900">My Library</h2>
+                  <p className="mt-1 text-sm text-gray-500">{notes.length} note{notes.length !== 1 ? "s" : ""} · saved locally</p>
                 </div>
-                <p className="mt-4 text-sm font-medium text-gray-900">Your library is empty</p>
-                <p className="mt-1 text-sm text-gray-500">Add notes, resources, and references here.</p>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(true)}
-                  className="mt-5 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-                >
-                  Add your first note
+                <button type="button" onClick={() => { setEditNote(undefined); setShowModal(true); }}
+                  className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
+                  <Plus className="h-4 w-4" />Add Note
                 </button>
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
-                <p className="text-sm text-gray-400">No notes match your search.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    onEdit={() => { setEditNote(note); setShowModal(true); }}
-                    onDelete={() => handleDelete(note.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+              {notes.length > 0 && (
+                <div className="relative mb-5 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <input type="text" placeholder="Search notes…" value={search} onChange={(e) => setSearch(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100" />
+                </div>
+              )}
+              {notes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100"><BookOpen className="h-5 w-5 text-gray-400" /></div>
+                  <p className="mt-4 text-sm font-medium text-gray-900">Your library is empty</p>
+                  <p className="mt-1 text-sm text-gray-500">Add notes, resources, and references here.</p>
+                  <button type="button" onClick={() => setShowModal(true)} className="mt-5 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Add your first note</button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
+                  <p className="text-sm text-gray-400">No notes match your search.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filtered.map((note) => (
+                    <NoteCard key={note.id} note={note}
+                      onEdit={() => { setEditNote(note); setShowModal(true); }}
+                      onDelete={() => handleDelete(note.id)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
       </div>
 
+      {/* ── Mobile ── */}
+      <MobileShell showFab={false}>
+        <div className="px-4 pt-4 pb-4">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">My Library</h1>
+              <p className="text-xs text-gray-500 mt-0.5">{notes.length} note{notes.length !== 1 ? "s" : ""}</p>
+            </div>
+            <button type="button" onClick={() => { setEditNote(undefined); setShowModal(true); }}
+              className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3.5 py-2 text-xs font-semibold text-white">
+              <Plus className="h-3.5 w-3.5" />Add Note
+            </button>
+          </div>
+          {notes.length > 0 && (
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input type="text" placeholder="Search notes…" value={search} onChange={(e) => setSearch(e.target.value)}
+                className="h-10 w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-gray-400" />
+            </div>
+          )}
+          {notes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 mb-3"><BookOpen className="h-5 w-5 text-gray-400" /></div>
+              <p className="text-sm font-medium text-gray-900">Your library is empty</p>
+              <button type="button" onClick={() => setShowModal(true)} className="mt-4 rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white">Add your first note</button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-sm text-gray-400 py-8">No notes match your search.</p>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((note) => (
+                <NoteCard key={note.id} note={note}
+                  onEdit={() => { setEditNote(note); setShowModal(true); }}
+                  onDelete={() => handleDelete(note.id)} />
+              ))}
+            </div>
+          )}
+        </div>
+      </MobileShell>
+
       {showModal && (
-        <NoteModal
-          initial={editNote}
+        <NoteModal initial={editNote}
           onClose={() => { setShowModal(false); setEditNote(undefined); }}
-          onSave={handleSave}
-        />
+          onSave={handleSave} />
       )}
-    </div>
+    </>
   );
 }

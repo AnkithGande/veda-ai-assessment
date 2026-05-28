@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
+import { MobileShell } from "@/components/mobile/MobileShell";
 import { cn } from "@/lib/utils";
 
 // ─── Tool definitions ─────────────────────────────────────────────────────────
@@ -187,32 +188,40 @@ export default function ToolkitPage() {
   const [activeTool, setActiveTool] = useState<typeof TOOLS[0] | null>(null);
 
   return (
-    <div className="flex h-full bg-gray-50">
-      <Sidebar />
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        <Navbar title="AI Teacher's Toolkit" subtitle="AI-powered tools for educators" />
-        <main className="flex-1 overflow-y-auto px-8 py-7">
-          <div className="mx-auto max-w-5xl">
-
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900">AI Teacher's Toolkit</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                {TOOLS.length} tools to help you create better assessments and lessons
-              </p>
+    <>
+      {/* ── Desktop ── */}
+      <div className="hidden md:flex h-full bg-gray-50">
+        <Sidebar />
+        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+          <Navbar title="AI Teacher's Toolkit" subtitle="AI-powered tools for educators" />
+          <main className="flex-1 overflow-y-auto px-8 py-7">
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold tracking-tight text-gray-900">AI Teacher&apos;s Toolkit</h2>
+                <p className="mt-1 text-sm text-gray-500">{TOOLS.length} tools to help you create better assessments and lessons</p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {TOOLS.map((tool) => <ToolCard key={tool.id} tool={tool} onClick={() => setActiveTool(tool)} />)}
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {TOOLS.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} onClick={() => setActiveTool(tool)} />
-              ))}
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
 
-      {activeTool && (
-        <ToolModal tool={activeTool} onClose={() => setActiveTool(null)} />
-      )}
-    </div>
+      {/* ── Mobile ── */}
+      <MobileShell showFab={false}>
+        <div className="px-4 pt-4 pb-4">
+          <div className="mb-4">
+            <h1 className="text-xl font-bold text-gray-900">AI Toolkit</h1>
+            <p className="text-xs text-gray-500 mt-0.5">{TOOLS.length} tools for educators</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {TOOLS.map((tool) => <ToolCard key={tool.id} tool={tool} onClick={() => setActiveTool(tool)} />)}
+          </div>
+        </div>
+      </MobileShell>
+
+      {activeTool && <ToolModal tool={activeTool} onClose={() => setActiveTool(null)} />}
+    </>
   );
 }
