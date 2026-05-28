@@ -23,7 +23,8 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 
 // Handle preflight OPTIONS requests for all routes (required for multipart uploads)
-app.options("*", cors(corsOptions));
+// Express 5 uses path-to-regexp v8 — wildcard syntax is "/*name"
+app.options("/*path", cors(corsOptions));
 
 // ─── Body parsing ─────────────────────────────────────────────────────────────
 // Note: multipart/form-data (PDF uploads) is handled by multer per-route.
